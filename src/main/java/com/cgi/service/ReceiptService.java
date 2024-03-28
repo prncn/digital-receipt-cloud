@@ -4,41 +4,43 @@ import com.cgi.model.EKaBS;
 import com.cgi.model.Line;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
 import com.lowagie.text.Font;
-import com.lowagie.text.FontFactory;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import java.awt.Color;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
 public class ReceiptService {
+    public static final String ARIAL = "/arial.ttf";
 
-    public static byte[] generateReceiptDocument(EKaBS receipt) {
+    public static byte[] generateReceiptDocument(EKaBS receipt) throws DocumentException, IOException {
         Document document = new Document();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PdfWriter.getInstance(document, outputStream);
         document.open();
-        Font fontHeading = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, new Color(100, 100, 100));
-        Font fontSubHeading = FontFactory.getFont(FontFactory.HELVETICA, 10, new Color(100, 100, 100));
-        Font fontBody = FontFactory.getFont(FontFactory.HELVETICA, 10);
 
-        Paragraph title = new Paragraph("DIGITAL RECEIPT", fontHeading);
+        BaseFont baseFont = BaseFont.createFont(ARIAL, BaseFont.WINANSI, BaseFont.EMBEDDED);
+        Font font = new Font(baseFont);
+
+        Paragraph title = new Paragraph("DIGITAL RECEIPT", font);
         title.setAlignment(Paragraph.ALIGN_JUSTIFIED_ALL);
         document.add(title);
         for (String line : List.of(
                 "This document was created on",
                 "the digital receipt cloud.",
                 receipt.head.id)) {
-            Paragraph headerLine = new Paragraph(line, fontSubHeading);
+            Paragraph headerLine = new Paragraph(line, font);
             headerLine.setAlignment(Paragraph.ALIGN_JUSTIFIED_ALL);
             document.add(headerLine);
         }
@@ -51,12 +53,12 @@ public class ReceiptService {
                 "65760 Eschborn",
                 "Frankfurter Straße 102-110",
                 "UstId: DE123456789")) {
-            Paragraph merchant = new Paragraph(line, fontBody);
+            Paragraph merchant = new Paragraph(line, font);
             merchant.setAlignment(Paragraph.ALIGN_CENTER);
             document.add(merchant);
         }
 
-        PdfPTable metaDataTable = createTable(2, fontBody, List.of(
+        PdfPTable metaDataTable = createTable(font, 2, List.of(
                 "Datum:",
                 receipt.head.date,
                 "Beleg Nr:",
@@ -67,7 +69,7 @@ public class ReceiptService {
         document.add(Chunk.NEWLINE);
         document.add(metaDataTable);
 
-        PdfPTable lineTableHeader = createTable(4, fontBody, List.of(
+        PdfPTable lineTableHeader = createTable(font, 4, List.of(
                 "Anzahl",
                 "Artikel",
                 "",
@@ -80,7 +82,7 @@ public class ReceiptService {
             lineContent.add("A");
             lineContent.add(String.format("%.2f", receipt.data.full_amount_incl_vat));
         }
-        PdfPTable lineTable = createTable(4, fontBody, lineContent);
+        PdfPTable lineTable = createTable(font, 4, lineContent);
 
         lineTableHeader.setWidths(new int[] { 50, 100, 50, 50 });
         lineTable.setWidths(new int[] { 50, 100, 50, 50 });
@@ -88,7 +90,7 @@ public class ReceiptService {
         document.add(lineTableHeader);
         document.add(lineTable);
 
-        PdfPTable paymentTable = createTable(4, fontBody, List.of(
+        PdfPTable paymentTable = createTable(font, 4, List.of(
                 "Rechnungsbetrag",
                 "EUR",
                 "",
@@ -108,7 +110,7 @@ public class ReceiptService {
         document.add(Chunk.NEWLINE);
         document.add(paymentTable);
 
-        PdfPTable vatTable = createTable(4, fontBody, List.of(
+        PdfPTable vatTable = createTable(font, 4, List.of(
                 "Steuersatz",
                 "Netto",
                 "MwSt",
@@ -130,7 +132,7 @@ public class ReceiptService {
         return outputStream.toByteArray();
     }
 
-    private static PdfPTable createTable(int columns, Font font, List<String> content) {
+    private static PdfPTable createTable(Font font, int columns, List<String> content) {
         PdfPTable table = new PdfPTable(columns);
         int metaDataTableIndex = 1;
         for (String text : content) {

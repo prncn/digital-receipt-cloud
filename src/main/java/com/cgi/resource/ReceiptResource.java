@@ -4,6 +4,8 @@ import com.cgi.model.EKaBS;
 import com.cgi.service.ReceiptService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lowagie.text.DocumentException;
+
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -74,7 +76,7 @@ public class ReceiptResource {
     @GET
     @Path("/{id}/view")
     @Produces("application/pdf")
-    public byte[] createPDF(@RestPath String id) throws IOException {
+    public byte[] createPDF(@RestPath String id) throws IOException, DocumentException {
         EKaBS receipt = getReceiptById(id);
         byte[] pdfData = ReceiptService.generateReceiptDocument(receipt);
         return pdfData;
@@ -83,9 +85,14 @@ public class ReceiptResource {
     @GET
     @Path("/pdf")
     @Produces("application/pdf")
-    public byte[] generateFormattedReceiptPDF() throws IOException {
+    public byte[] generateFormattedReceiptPDF() {
         EKaBS receipt = EKaBS.createTestReceipt("550e8400-e29b-11d4-a716-446655440000");
-        byte[] pdfData = ReceiptService.generateReceiptDocument(receipt);
+        byte[] pdfData = null;
+        try {
+            pdfData = ReceiptService.generateReceiptDocument(receipt);
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
         return pdfData;
     }
 }
