@@ -34,6 +34,6 @@ public class EKaBS {
     }
 
     public double calculateVat() {
-        return (data.full_amount_incl_vat * 7) / 100;
+        return (data.full_amount_incl_vat * 19) / 100;
     }
 }

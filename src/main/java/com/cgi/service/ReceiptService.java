@@ -32,16 +32,18 @@ public class ReceiptService {
 
         BaseFont baseFont = BaseFont.createFont(ARIAL, BaseFont.WINANSI, BaseFont.EMBEDDED);
         Font font = new Font(baseFont);
+        Font headerFont = new Font(baseFont);
+        headerFont.setSize(9);
 
-        Paragraph title = new Paragraph("DIGITAL RECEIPT", font);
-        title.setAlignment(Paragraph.ALIGN_JUSTIFIED_ALL);
+        Paragraph title = new Paragraph("DIGITAL RECEIPT", headerFont);
+        title.setAlignment(Paragraph.ALIGN_CENTER);
         document.add(title);
         for (String line : List.of(
                 "This document was created on",
                 "the digital receipt cloud.",
                 receipt.head.id)) {
-            Paragraph headerLine = new Paragraph(line, font);
-            headerLine.setAlignment(Paragraph.ALIGN_JUSTIFIED_ALL);
+            Paragraph headerLine = new Paragraph(line, headerFont);
+            headerLine.setAlignment(Paragraph.ALIGN_CENTER);
             document.add(headerLine);
         }
 
@@ -80,7 +82,7 @@ public class ReceiptService {
             lineContent.add(String.valueOf(line.item.quantity));
             lineContent.add(line.text);
             lineContent.add("A");
-            lineContent.add(String.format("%.2f", receipt.data.full_amount_incl_vat));
+            lineContent.add(String.format("%.2f", line.item.price_per_unit));
         }
         PdfPTable lineTable = createTable(font, 4, lineContent);
 
@@ -115,7 +117,7 @@ public class ReceiptService {
                 "Netto",
                 "MwSt",
                 "Brutto",
-                "A 7% MwSt",
+                "19% MwSt",
                 String.format("%.2f", receipt.calculateAmountExclVat()),
                 String.format("%.2f", receipt.calculateVat()),
                 String.format("%.2f", receipt.data.full_amount_incl_vat),
